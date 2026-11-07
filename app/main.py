@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Response
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.dialects.postgresql import insert
 
@@ -22,8 +23,7 @@ def health():
 
 
 @app.post("/webhooks/helpdesk", status_code=202)
-def helpdesk_webhook(payload: HelpdeskEvent, response: Response):
-    # Одна транзакція: або подію записано разом зі зверненням, або нічого.
+def helpdesk_webhook(payload: HelpdeskEvent):
     with SessionLocal.begin() as s:
         res = s.execute(
             insert(WebhookEvent)
@@ -31,8 +31,7 @@ def helpdesk_webhook(payload: HelpdeskEvent, response: Response):
             .on_conflict_do_nothing(index_elements=["event_id"])
         )
         if res.rowcount == 0:
-            response.status_code = 200
-            return {"status": "duplicate"}
+            return JSONResponse({"status": "duplicate"}, status_code=200)
 
         s.execute(
             insert(Ticket)
