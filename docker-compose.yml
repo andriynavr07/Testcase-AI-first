@@ -24,5 +24,18 @@ services:
       db:
         condition: service_healthy
 
+  worker:
+    build: .
+    command: python -m app.worker
+    environment:
+      DATABASE_URL: postgresql+psycopg://app:app@db:5432/app
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-25}
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+
 volumes:
   pgdata:
