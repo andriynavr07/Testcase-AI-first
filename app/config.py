@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     llm_rate_limit_per_minute: int = 60
     worker_concurrency: int = 25
     max_attempts: int = 5
+    sender_concurrency: int = 4
+    sender_lease_seconds: int = 60
+    sender_max_attempts: int = 8
+    reply_timeout: int = 10
 
 
 settings = Settings()

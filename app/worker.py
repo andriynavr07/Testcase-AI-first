@@ -10,6 +10,7 @@ from app.llm import generate_draft
 from app.queue import claim_next_ticket
 from app.ratelimit import wait_for_slot
 from app.search import search_articles
+from app.sender import sender_loop
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(threadName)s %(message)s")
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -61,11 +62,14 @@ def worker_loop() -> None:
 
 
 def main() -> None:
-    log.info("starting worker, concurrency=%d, mock=%s",
-             settings.worker_concurrency, not settings.anthropic_api_key)
-    with ThreadPoolExecutor(max_workers=settings.worker_concurrency) as pool:
+    log.info("starting worker, concurrency=%d, senders=%d, mock=%s",
+             settings.worker_concurrency, settings.sender_concurrency, not settings.anthropic_api_key)
+    total = settings.worker_concurrency + settings.sender_concurrency
+    with ThreadPoolExecutor(max_workers=total) as pool:
         for _ in range(settings.worker_concurrency):
             pool.submit(worker_loop)
+        for _ in range(settings.sender_concurrency):
+            pool.submit(sender_loop)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Response
 from fastapi.responses import JSONResponse
+from app.ui import router as ui_router
 from pydantic import BaseModel
 from sqlalchemy.dialects.postgresql import insert
 
@@ -7,7 +8,7 @@ from app.db import SessionLocal
 from app.models import Ticket, WebhookEvent
 
 app = FastAPI(title="Support Draft Service")
-
+app.include_router(ui_router)
 
 class HelpdeskEvent(BaseModel):
     event_id: str
